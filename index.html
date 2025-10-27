@@ -79,13 +79,29 @@
         </div>
 
         <div hidden id="userData-card">
-            <h2>User Data Search</h2>
-            <p>Welcome, <span class="username-display"></span>!</p>
+            <h2>User Data Management</h2>
+            <p>Search for and manage user records!</p>
         <div>
-            <input placeholder="search by name"
-            id="search-input">
+            <br><br><br>
+            <label for = "userSearch"> Search By:</label>
+            <select name="UserSearch" id="userSearch">
+                <option value="firstname">First Name</option>
+                <option value="lastname">Last Name</option>
+                <option value="salary">Salary Range (Min/Max)</option>
+                <option value="age">Age Range (Min/Max)</option>
+                <option value="id">User ID</option>
+                <option value="registered_today">Registered Today</option>
+                <option value="never_signed_in">Never Signed In</option>
+                <option value="registered_after_id">Registered After:</option>
+                <option value="registered_same_day_id">Registered Same Day as:</option>
+
+            </select>
+            <div id="dynamic-search-inputs">
+            <input placeholder="Enter Value"
+                id="search-input" type ="text">
+            </div>
             <button id="search-btn">Search</button>
-        </div>
+
         <table id="table">
             <thead>
                 <th>ID</th>
@@ -130,6 +146,10 @@
         const logoutBtn = document.getElementById('logout-btn');
         const usernameDisplay = document.getElementById('username-display');
 
+        const searchSelect = document.getElementById('userSearch');
+        const searchButton = document.getElementById('search-btn');
+        const dynamicInputsDiv = document.getElementById('dynamic-search-inputs');
+        const tableBody = document.querySelector('table tbody');
         
         
     function navigateTo(targetCard, username = 'User') {
@@ -223,6 +243,112 @@
             alert(error.message);
     });
     });
+
+    function updateSearchInputs(){
+        const value = searchSelect.value;
+        dynamicInputsDiv.innerHTML = '';
+
+        if(value === 'salary' || value === 'age'){
+            dynamicInputsDiv.innerHTML = `
+            <input placeholder="Min Value" id="search-input-min" type="number" style="width: 100px;">
+            <input placeholder="Max Value" id="search-input-max" type="number" style="width: 100px;">
+        `;
+        }
+        else if(value === 'id'|| value === 'registered_after_id' || value ==='registered_same_day_id'){
+            dynamicInputsDiv.innerHTML = `
+            <input placeholder="Enter User ID" id="search-input-id" type="number">
+        `;
+        }
+        else if(value === 'firstname' || value === 'lastname') {
+            dynamicInputsDiv.innerHTML = `
+                <input placeholder="Enter Name" id="search-input-name" type="text">
+            `;
+        }
+    }
+    searchSelect.addEventListener('change', updateSearchInputs);
+    updateSearchInputs();
+
+searchButton.addEventListener('click', function() {
+    const searchType = searchSelect.value;
+    let url = 'http://localhost:5050';
+    let params = [];
+
+    // --- Build the URL based on the search type ---
+    if (searchType === 'firstname') {
+        const first = document.getElementById('search-input-name').value;
+        if (!first) {
+            alert("Please enter a first or last name to search.");
+            return;
+        }
+        url += `/users/by-name?firstname=${encodeURIComponent(first)}`;
+    }else if(searchType === 'lastname') {
+        const last = document.getElementById('search-input-name').value;
+        if (!last) {
+            alert("Please enter a last name.");
+            return;
+        }
+        url += `/users/by-name?lastname=${encodeURIComponent(last)}`;
+
+
+    } else if (searchType === 'salary' || searchType === 'age') {
+        const min = document.getElementById('search-input-min').value;
+        const max = document.getElementById('search-input-max').value;
+        if (!min || !max) {
+            alert("Please enter both minimum and maximum values.");
+            return;
+        }
+        const endpoint = searchType === 'salary' ? 'by-salary-range' : 'by-age-range';
+        url += `/users/${endpoint}?min=${min}&max=${max}`;
+
+    } else if (searchType === 'id') {
+        const id = document.getElementById('search-input-id').value;
+        if (!id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        url += `/users/by-id/${id}`;
+
+    } else if (searchType === 'registered_after_id') {
+        const id = document.getElementById('search-input-id').value;
+        if (!id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        url += `/users/registered/after/${id}`;
+
+    } else if (searchType === 'registered_same_day_id') {
+        const id = document.getElementById('search-input-id').value;
+        if (!id) {
+            alert("Please enter a User ID.");
+            return;
+        }
+        url += `/users/registered/same-day/${id}`;
+
+    } else if (searchType === 'registered_today') {
+        url += `/users/registered/today`;
+        
+    } else if (searchType === 'never_signed_in') {
+        url += `/users/never-signed-in`;
+    }
+
+    // --- Execute the Fetch Request ---
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || "Failed to retrieve data.");
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadHTMLTable(data.data);
+        })
+        .catch(error => {
+            console.error("Search Error:", error.message);
+            tableBody.innerHTML = `<tr><td colspan="10" style="color:red;">Error: ${error.message}</td></tr>`;
+        });
+});
 
     welcomeContinueBtn.addEventListener('click', function() {
         const currentUsername = welcomeCard.querySelector('.username-display').textContent;
