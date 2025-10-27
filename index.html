@@ -8,34 +8,236 @@
 </head>
 <body>
     <main>
-        <label>Name:</label>
-        <input type="text" id="name-input">
-        <button id="add-name-btn">Add Name</button>
+        <div hidden id="register-card">
+            <h2>Create an Account</h2>
+            <form id="register-form">
+                <div>
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" name="username" required>
+                </div>
+                <div>
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" name="password" required>
+                </div>
+                <div>
+                    <label for="register-firstname">Firstname</label>
+                    <input type="text" id="register-firstname" name="firstname" required>
+                </div>
+                <div>
+                    <label for="register-lastname">Lastname</label>
+                    <input type="text" id="register-lastname" name="lastname" required>
+                </div>
+                <div>
+                    <label for="register-salary">Salary</label>
+                    <input type="number" id="register-salary" name="salary" required>
+                </div>
+                <div>
+                    <label for="register-age">Age</label>
+                    <input type="number" id="register-age" name="age" required>
+                </div>
+                <div>
+                    <button type="submit">Register</button>
+                </div>
+                <p>
+                    Already have an account? <a href="#" id="show-login">Sign In</a>
+                </p>
+            </form>
+        </div>
 
-        <br><br><br>
+        <div id="login-card">
+            <h2>Welcome Back!</h2>
+            <form id="login-form">
+                <div>
+                    <label for="register-username">Username</label>
+                    <input type="text" id="login-username" name="username" required>
+                </div>
+                <div>
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <div>
+                    <button type="submit">Sign In</button>
+                </div>
+                <p>
+                    Don't have an account? <a href="#" id="show-register">Register</a>
+                </p>
+            </form>
+        </div>
+
+        <div hidden id="welcome-card">
+            <h2>Login Successful!</h2>
+            <p>Welcome, <span class="username-display"></span>!</p>
+            <p>Press the button below to go the User Records.</p>
+            <button id="login-data-btn">Continue</button>
+        </div>
+
+        <div hidden id="registered-card">
+            <h2>You are now registered!</h2>
+            <p>Welcome, <span class="username-display"></span>!</p>
+            <p>Press the button below to go the User Records.</p>
+            <button id="register-data-btn">Continue</button>
+        </div>
+
+        <div hidden id="userData-card">
+            <h2>User Data Search</h2>
+            <p>Welcome, <span class="username-display"></span>!</p>
         <div>
             <input placeholder="search by name"
             id="search-input">
             <button id="search-btn">Search</button>
         </div>
-
         <table id="table">
             <thead>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Date Added</th>
+                <th>Username</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Age</th>
+                <th>Salary</th>
+                <th>Register Date</th>
+                <th>Sign On Time</th>
                 <th>Delete</th>
                 <th>Edit</th>
             </thead>
             <tbody></tbody>
         </table>
-        <section hidden id = "update-row">
-                <label>Name:</label>
-                <input type="text" id="update-name-input">
-                <button id="update-row-btn">Update</button>
+            <button id="logout-btn">Logout</button>
+        </div>
 
-        </section>
     </main>
+    <script>
+        const showRegisterLink = document.getElementById('show-register');
+        const showLoginLink = document.getElementById('show-login');
+
+        const loginCard = document.getElementById('login-card');
+        const registerCard = document.getElementById('register-card');
+        const welcomeCard = document.getElementById('welcome-card');
+        const registerSuccessCard = document.getElementById('registered-card'); 
+        const userDataCard = document.getElementById('userData-card'); 
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form'); 
+        const loginUsernameInput = document.getElementById('login-username');
+        const loginPasswordInput = document.getElementById('login-password')
+        const registerUsernameInput = document.getElementById('register-username');
+        const registerPasswordInput = document.getElementById('register-password');
+        const registerFirstnameInput = document.getElementById('register-firstname');
+        const registerLastnameInput = document.getElementById('register-lastname');
+        const registerSalaryInput = document.getElementById('register-salary');
+        const registerAgeInput = document.getElementById('register-age');
+
+        const welcomeContinueBtn = document.getElementById('login-data-btn');
+        const registerContinueBtn = document.getElementById('register-data-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const usernameDisplay = document.getElementById('username-display');
+
+        
+        
+    function navigateTo(targetCard, username = 'User') {
+        document.querySelectorAll('.username-display').forEach(span => {
+            span.textContent = username;
+        });
+
+        loginCard.hidden = true;
+        registerCard.hidden = true;
+        welcomeCard.hidden = true;
+        registerSuccessCard.hidden = true;
+        userDataCard.hidden = true;
+        
+        targetCard.hidden = false;
+    }
+    
+    showRegisterLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        navigateTo(registerCard);
+    });
+
+    showLoginLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        navigateTo(loginCard);
+    });
+    loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const username = loginUsernameInput.value;
+            const password = loginPasswordInput.value;
+
+            fetch('http://localhost:5050/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || "Login failed due to server error.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                navigateTo(welcomeCard, data.username || username);
+                loginForm.reset();
+            })
+            .catch(error => {
+                console.error("Login attempt failed:", error.message);
+                alert(error.message);
+            });
+        });
+    registerForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const username = registerUsernameInput.value;
+        const password = registerPasswordInput.value;
+        const firstname = registerFirstnameInput.value;
+        const lastname = registerLastnameInput.value;
+        const salary = parseFloat(registerSalaryInput.value);
+        const age = parseInt(registerAgeInput.value, 10);
+
+        const dataToSend = {
+            username: username,
+            password: password,
+            firstname: firstname,
+            lastname: lastname, 
+            salary: salary,
+            age: age,
+        };
+
+        fetch('http://localhost:5050/register', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSend)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                navigateTo(registerSuccessCard, username);
+                registerForm.reset(); 
+            }
+        })
+        .catch(error => {
+            console.error("Registration failed:", error.message);
+            alert(error.message);
+    });
+    });
+
+    welcomeContinueBtn.addEventListener('click', function() {
+        const currentUsername = welcomeCard.querySelector('.username-display').textContent;
+        navigateTo(userDataCard, currentUsername);
+    });
+
+    registerContinueBtn.addEventListener('click', function() {
+        const currentUsername = registerSuccessCard.querySelector('.username-display').textContent;
+        navigateTo(userDataCard, currentUsername);
+    });
+
+    logoutBtn.addEventListener('click', function() {
+        navigateTo(loginCard);
+    });
+    </script>
     <script src="index.js"></script>
 </body>
 </html>
