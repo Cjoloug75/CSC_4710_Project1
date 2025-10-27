@@ -112,15 +112,20 @@ function loadHTMLTable(data){
 
     const table = document.querySelector('table tbody')
     if (data.length === 0){
-        table.innerHTML = "<tr><td class = 'no-data' colspan ='5'> No Data </td></tr>"
+        table.innerHTML = "<tr><td class = 'no-data' colspan ='10'> No Data </td></tr>"
         return;
     }
     let tableHtml = "";
-    data.forEach(function({id,name, date_added}){
+    data.forEach(function({id,username,firstname, lastname, salary,age,registerday,signintime}){
         tableHtml += "<tr>";
         tableHtml += `<td>${id}</td>`;
-        tableHtml += `<td>${name}</td>`;
-        tableHtml += `<td>${new Date(date_added).toLocaleString()}</td>`;
+        tableHtml += `<td>${username}</td>`;
+        tableHtml += `<td>${firstname}</td>`;
+        tableHtml += `<td>${lastname}</td>`;
+        tableHtml += `<td>${salary}</td>`;
+        tableHtml += `<td>${age}</td>`;
+        tableHtml += `<td>${new Date(registerday).toLocaleString()}</td>`;
+        tableHtml += `<td>${new Date(signintime).toLocaleString()}</td>`;
         tableHtml += `<td><button class="delete-row-btn" data-id=${id}>Delete</button></td>`;
         tableHtml += `<td><button class="edit-row-btn" data-id=${id}>Edit</button></td>`;
         tableHtml += "</tr>";
